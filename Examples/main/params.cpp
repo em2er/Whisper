@@ -1,6 +1,7 @@
 #include "params.h"
 #include <algorithm>
 #include <thread>
+#include <map>
 #include "miscUtils.h"
 #include "../../Whisper/API/iContext.cl.h"
 
@@ -21,6 +22,15 @@ namespace
 	}
 }
 
+using Whisper::eLogLevel;
+
+static const std::map<eLogLevel, std::string> g_log_level = {
+	{ eLogLevel::Error, "error" },
+	{ eLogLevel::Warning, "warn" },
+	{ eLogLevel::Info, "info" },
+	{ eLogLevel::Debug, "debug" },
+};
+
 void whisper_print_usage( int argc, wchar_t** argv, const whisper_params& params )
 {
 	fprintf( stderr, "\n" );
@@ -40,6 +50,7 @@ void whisper_print_usage( int argc, wchar_t** argv, const whisper_params& params
 	fprintf( stderr, "  -wt N,    --word-thold N  [%-7.2f] word timestamp probability threshold\n", params.word_thold );
 	fprintf( stderr, "  -su,      --speed-up      [%-7s] speed up audio by x2 (reduced accuracy)\n", cstr( params.speed_up ) );
 	fprintf( stderr, "  -tr,      --translate     [%-7s] translate from source language to english\n", cstr( params.translate ) );
+	fprintf( stderr, "            --detect-lang   [%-7s] detect language and exit\n", cstr(params.detect_lang) );
 	fprintf( stderr, "  -di,      --diarize       [%-7s] stereo audio diarization\n", cstr( params.diarize ) );
 	fprintf( stderr, "  -otxt,    --output-txt    [%-7s] output result in a text file\n", cstr( params.output_txt ) );
 	fprintf( stderr, "  -ovtt,    --output-vtt    [%-7s] output result in a vtt file\n", cstr( params.output_vtt ) );
@@ -51,7 +62,8 @@ void whisper_print_usage( int argc, wchar_t** argv, const whisper_params& params
 	fprintf( stderr, "  -l LANG,  --language LANG [%-7s] spoken language\n", params.language.c_str() );
 	fprintf( stderr, "  -m FNAME, --model FNAME   [%-7S] model path\n", params.model.c_str() );
 	fprintf( stderr, "  -f FNAME, --file FNAME    [%-7s] path of the input audio file\n", "" );
-	fprintf( stderr, "  --prompt                            initial prompt for the model\n" );
+	fprintf( stderr, "  --prompt                         initial prompt for the model\n" );
+	fprintf( stderr, "  --log-level               [%-7s] log level (error, warn, info, debug)\n", g_log_level.at((eLogLevel)params.log_level).c_str() );
 	fprintf( stderr, "\n" );
 }
 
@@ -67,6 +79,17 @@ static void listGpus()
 	if( SUCCEEDED( hr ) )
 		return;
 	printError( "Unable to enumerate GPUs", hr );
+}
+
+eLogLevel log_level_from_str(std::string level_str) {
+	for (const auto& kv : g_log_level) {
+		if (kv.second == level_str) {
+			return kv.first;
+		}
+	}
+
+	fprintf(stderr, "Unknown debug level %s, setting log level to debug\n", level_str.c_str());
+	return eLogLevel::Debug;
 }
 
 bool whisper_params::parse( int argc, wchar_t* argv[] )
@@ -112,10 +135,12 @@ bool whisper_params::parse( int argc, wchar_t* argv[] )
 		else if( arg == L"-nc" || arg == L"--no-colors" ) { print_colors = false; }
 		else if( arg == L"-nt" || arg == L"--no-timestamps" ) { no_timestamps = true; }
 		else if( arg == L"-l" || arg == L"--language" ) { language = utf8( argv[ ++i ] ); }
+		else if( arg == L"--detect-lang") { detect_lang = true; }
 		else if( arg == L"-m" || arg == L"--model" ) { model = argv[ ++i ]; }
 		else if( arg == L"-f" || arg == L"--file" ) { fname_inp.push_back( argv[ ++i ] ); }
 		else if( arg == L"-gpu" || arg == L"--use-gpu" ) { gpu = argv[ ++i ]; }
 		else if( arg == L"--prompt" ) { prompt = utf8( argv[ ++i ] ); }
+		else if( arg == L"--log-level" ) { log_level = static_cast<uint8_t>(log_level_from_str(utf8( argv[ ++i ] ))); }
 		else
 		{
 			fprintf( stderr, "error: unknown argument: %S\n", arg.c_str() );

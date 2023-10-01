@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 
+
 // command-line parameters
 struct whisper_params
 {
@@ -27,10 +28,13 @@ struct whisper_params
 	bool no_timestamps = false;
 
 	std::string language = "en";
+	bool detect_lang = false;
 	std::wstring model = L"models/ggml-base.en.bin";
 	std::wstring gpu;
 	std::string prompt;
 	std::vector<std::wstring> fname_inp;
+
+	uint8_t log_level = 0;
 
 	whisper_params();
 

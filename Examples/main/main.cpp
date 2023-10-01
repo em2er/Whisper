@@ -187,6 +187,13 @@ int wmain( int argc, wchar_t* argv[] )
 	if( !params.parse( argc, argv ) )
 		return 1;
 
+	if (params.log_level != static_cast<uint8_t>(eLogLevel::Debug)) {
+		Whisper::sLoggerSetup logSetup;
+		logSetup.flags = eLoggerFlags::UseStandardError;
+		logSetup.level = static_cast<eLogLevel>(params.log_level);
+		Whisper::setupLogger(logSetup);
+	}
+
 	if( params.print_colors )
 	{
 		if( FAILED( setupConsoleColors() ) )
@@ -209,6 +216,7 @@ int wmain( int argc, wchar_t* argv[] )
 
 	ComLight::CComPtr<iModel> model;
 	HRESULT hr = loadWhisperModel( params.model.c_str(), params.gpu, &model );
+
 	if( FAILED( hr ) )
 	{
 		printError( "failed to load the model", hr );
@@ -248,7 +256,7 @@ int wmain( int argc, wchar_t* argv[] )
 		{
 			if( model->isMultilingual() == S_FALSE )
 			{
-				if( params.language != "en" || params.translate )
+				if( params.language != "en" || params.translate || params.detect_lang)
 				{
 					params.language = "en";
 					params.translate = false;
@@ -268,6 +276,8 @@ int wmain( int argc, wchar_t* argv[] )
 		// When there're multiple input files, assuming they're independent clips
 		wparams.setFlag( eFullParamsFlags::NoContext );
 		wparams.language = Whisper::makeLanguageKey( params.language.c_str() );
+		wparams.detect_lang = params.detect_lang = true;
+		wparams.setFlag(eFullParamsFlags::DetectLang, params.detect_lang);
 		wparams.cpuThreads = params.n_threads;
 		if( params.max_context != UINT_MAX )
 			wparams.n_max_text_ctx = params.max_context;

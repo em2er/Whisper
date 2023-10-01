@@ -261,6 +261,8 @@ extern "C" {
         // for auto-detection, set to nullptr, "" or "auto"
         const char * language;
 
+        bool detect_lang;
+
         struct {
             int n_past;
         } greedy;

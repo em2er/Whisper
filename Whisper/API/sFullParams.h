@@ -27,6 +27,7 @@ namespace Whisper
 		PrintProgress = 0x10,
 		PrintRealtime = 0x20,
 		PrintTimestamps = 0x40,
+		DetectLang = 0x80,
 
 		// Experimental
 		TokenTimestamps = 0x100,
@@ -52,6 +53,7 @@ namespace Whisper
 		int duration_ms;        // audio duration to process in ms
 		eFullParamsFlags flags;
 		uint32_t language;
+		bool detect_lang;
 
 		// [EXPERIMENTAL] token-level timestamps
 		float thold_pt;         // timestamp token probability threshold (~0.01)

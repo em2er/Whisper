@@ -2628,6 +2628,8 @@ struct whisper_full_params whisper_full_default_params(enum whisper_sampling_str
                     /*.prompt_n_tokens  =*/ 0,
 
                     /*.language         =*/ "en",
+                    
+                    /*.detect_lang      =*/ false,
 
                     /*.greedy           =*/ {
                         /*.n_past =*/ 0,
@@ -2677,6 +2679,8 @@ struct whisper_full_params whisper_full_default_params(enum whisper_sampling_str
                     /*.prompt_n_tokens  =*/ 0,
 
                     /*.language         =*/ "en",
+                    
+                    /*.detect_lang         =*/ false,
 
                     /*.greedy           =*/ {
                         /*.n_past =*/ -1,
@@ -2786,7 +2790,7 @@ int whisper_full(
     }
 
     // auto-detect language if not specified
-    if (params.language == nullptr || strlen(params.language) == 0 || strcmp(params.language, "auto") == 0) {
+    if (params.language == nullptr || strlen(params.language) == 0 || strcmp(params.language, "auto") == 0 || params.detect_lang) {
         std::vector<float> probs(whisper_lang_max_id() + 1, 0.0f);
 
         const auto lang_id = whisper_lang_auto_detect(ctx, 0, params.n_threads, probs.data());
@@ -2798,6 +2802,11 @@ int whisper_full(
         params.language = whisper_lang_str(lang_id);
 
 		logInfo( u8"%s: auto-detected language: %s (p = %f)", __func__, params.language, probs[ whisper_lang_id( params.language ) ] );
+
+        if (params.detect_lang) {
+            logInfo( u8"Language code/short/full:\n%i\n%s\n%s", g_lang.at(params.language).first, params.language, g_lang.at(params.language).second.c_str());
+            return 0;
+        }
     }
 
     if (params.token_timestamps) {

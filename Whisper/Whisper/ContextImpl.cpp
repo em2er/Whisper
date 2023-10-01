@@ -2,7 +2,130 @@
 #include "ContextImpl.h"
 #include "Languages.h"
 #include "../Utils/Trace/tracing.h"
+#include <map>
 using namespace Whisper;
+
+static const std::map<std::string, std::pair<int, std::string>> g_lang = {
+	{ "en",  { 0,  "english",         } },
+	{ "zh",  { 1,  "chinese",         } },
+	{ "de",  { 2,  "german",          } },
+	{ "es",  { 3,  "spanish",         } },
+	{ "ru",  { 4,  "russian",         } },
+	{ "ko",  { 5,  "korean",          } },
+	{ "fr",  { 6,  "french",          } },
+	{ "ja",  { 7,  "japanese",        } },
+	{ "pt",  { 8,  "portuguese",      } },
+	{ "tr",  { 9,  "turkish",         } },
+	{ "pl",  { 10, "polish",          } },
+	{ "ca",  { 11,  "catalan",        } },
+	{ "nl",  { 12,  "dutch",          } },
+	{ "ar",  { 13,  "arabic",         } },
+	{ "sv",  { 14,  "swedish",        } },
+	{ "it",  { 15,  "italian",        } },
+	{ "id",  { 16,  "indonesian",     } },
+	{ "hi",  { 17,  "hindi",          } },
+	{ "fi",  { 18,  "finnish",        } },
+	{ "vi",  { 19,  "vietnamese",     } },
+	{ "iw",  { 20,  "hebrew",         } },
+	{ "uk",  { 21,  "ukrainian",      } },
+	{ "el",  { 22,  "greek",          } },
+	{ "ms",  { 23,  "malay",          } },
+	{ "cs",  { 24,  "czech",          } },
+	{ "ro",  { 25,  "romanian",       } },
+	{ "da",  { 26,  "danish",         } },
+	{ "hu",  { 27,  "hungarian",      } },
+	{ "ta",  { 28,  "tamil",          } },
+	{ "no",  { 29,  "norwegian",      } },
+	{ "th",  { 30,  "thai",           } },
+	{ "ur",  { 31,  "urdu",           } },
+	{ "hr",  { 32,  "croatian",       } },
+	{ "bg",  { 33,  "bulgarian",      } },
+	{ "lt",  { 34,  "lithuanian",     } },
+	{ "la",  { 35,  "latin",          } },
+	{ "mi",  { 36,  "maori",          } },
+	{ "ml",  { 37,  "malayalam",      } },
+	{ "cy",  { 38,  "welsh",          } },
+	{ "sk",  { 39,  "slovak",         } },
+	{ "te",  { 40,  "telugu",         } },
+	{ "fa",  { 41,  "persian",        } },
+	{ "lv",  { 42,  "latvian",        } },
+	{ "bn",  { 43,  "bengali",        } },
+	{ "sr",  { 44,  "serbian",        } },
+	{ "az",  { 45,  "azerbaijani",    } },
+	{ "sl",  { 46,  "slovenian",      } },
+	{ "kn",  { 47,  "kannada",        } },
+	{ "et",  { 48,  "estonian",       } },
+	{ "mk",  { 49,  "macedonian",     } },
+	{ "br",  { 50,  "breton",         } },
+	{ "eu",  { 51,  "basque",         } },
+	{ "is",  { 52,  "icelandic",      } },
+	{ "hy",  { 53,  "armenian",       } },
+	{ "ne",  { 54,  "nepali",         } },
+	{ "mn",  { 55,  "mongolian",      } },
+	{ "bs",  { 56,  "bosnian",        } },
+	{ "kk",  { 57,  "kazakh",         } },
+	{ "sq",  { 58,  "albanian",       } },
+	{ "sw",  { 59,  "swahili",        } },
+	{ "gl",  { 60,  "galician",       } },
+	{ "mr",  { 61,  "marathi",        } },
+	{ "pa",  { 62,  "punjabi",        } },
+	{ "si",  { 63,  "sinhala",        } },
+	{ "km",  { 64,  "khmer",          } },
+	{ "sn",  { 65,  "shona",          } },
+	{ "yo",  { 66,  "yoruba",         } },
+	{ "so",  { 67,  "somali",         } },
+	{ "af",  { 68,  "afrikaans",      } },
+	{ "oc",  { 69,  "occitan",        } },
+	{ "ka",  { 70,  "georgian",       } },
+	{ "be",  { 71,  "belarusian",     } },
+	{ "tg",  { 72,  "tajik",          } },
+	{ "sd",  { 73,  "sindhi",         } },
+	{ "gu",  { 74,  "gujarati",       } },
+	{ "am",  { 75,  "amharic",        } },
+	{ "yi",  { 76,  "yiddish",        } },
+	{ "lo",  { 77,  "lao",            } },
+	{ "uz",  { 78,  "uzbek",          } },
+	{ "fo",  { 79,  "faroese",        } },
+	{ "ht",  { 80,  "haitian creole", } },
+	{ "ps",  { 81,  "pashto",         } },
+	{ "tk",  { 82,  "turkmen",        } },
+	{ "nn",  { 83,  "nynorsk",        } },
+	{ "mt",  { 84,  "maltese",        } },
+	{ "sa",  { 85,  "sanskrit",       } },
+	{ "lb",  { 86,  "luxembourgish",  } },
+	{ "my",  { 87,  "myanmar",        } },
+	{ "bo",  { 88,  "tibetan",        } },
+	{ "tl",  { 89,  "tagalog",        } },
+	{ "mg",  { 90,  "malagasy",       } },
+	{ "as",  { 91,  "assamese",       } },
+	{ "tt",  { 92,  "tatar",          } },
+	{ "haw", { 93,  "hawaiian",       } },
+	{ "ln",  { 94,  "lingala",        } },
+	{ "ha",  { 95,  "hausa",          } },
+	{ "ba",  { 96,  "bashkir",        } },
+	{ "jw",  { 97,  "javanese",       } },
+	{ "su",  { 98,  "sundanese",      } },
+};
+
+const char* whisper_lang_str(int id) {
+	for (const auto& kv : g_lang) {
+		if (kv.second.first == id) {
+			return kv.first.c_str();
+		}
+	}
+
+	logError(u8"%s: unknown language id %d", __func__, id);
+	return nullptr;
+}
+
+int whisper_lang_max_id() {
+	auto max_id = 0;
+	for (const auto& kv : g_lang) {
+		max_id = std::max(max_id, kv.second.first);
+	}
+
+	return max_id;
+}
 
 ContextImpl::ContextImpl( const DirectCompute::Device& dev, const WhisperModel& modelData, iModel* modelPointer ) :
 	device( dev ),
@@ -671,6 +794,70 @@ HRESULT COMLIGHTCALL ContextImpl::runFullImpl( const sFullParams& params, const 
 					break;
 				}
 			}
+			if (params.detect_lang) {
+
+				//const std::vector<whisper_token> prompt = { whisper_token_sot(ctx) };
+				//if (whisper_decode(ctx, prompt.data(), prompt.size(), 0, n_threads) != 0) {
+				//	logError(u8"%s: failed to decode", __func__);
+				//	return -7;
+				//}
+
+				probs = std::vector<float>(whisper_lang_max_id() + 1, 0.0f);
+
+				const std::vector<whisper_token> prompt = { vocab.token_sot };
+				CHECK( decode(prompt.data(), prompt.size(), 0, params.cpuThreads) );
+
+				std::vector<std::pair<float, int>> probs_id;
+				for (const auto& kv : g_lang) {
+
+					//whisper_token_lang = whisper_token_sot(ctx) + 1 + lang_id;
+					//whisper_token_sot=whisper_token whisper_token_sot(struct whisper_context * ctx) {return ctx->vocab.token_sot;}
+					//		prompt_init.push_back( vocab.token_sot + 1 + langId );
+
+
+
+					//const auto token_lang = whisper_token_lang(ctx, kv.second.first);
+					auto langId = kv.second.first;
+					const auto token_lang = vocab.token_sot + 1 + langId;
+					probs_id.emplace_back(this->probs[token_lang], langId);
+				}
+
+				// sort descending
+				{
+					using pair_type = decltype(probs_id)::value_type;
+					std::sort(probs_id.begin(), probs_id.end(), [](const pair_type& a, const pair_type& b) {
+						return a.first > b.first;
+						});
+				}
+
+				// softmax
+				{
+					float sum = 0;
+					for (const auto& kv : probs_id) {
+						sum += exp(kv.first);
+					}
+
+					for (auto& kv : probs_id) {
+						kv.first = exp(kv.first) / sum;
+					}
+				}
+
+				{
+					//for (int i = 0; i < (int)probs_id.size(); i++) {
+					//	if (lang_probs) {
+					//		lang_probs[probs_id[i].second] = probs_id[i].first;
+					//	}
+
+					//	//printf("%s: lang %2d (%3s): %f\n", __func__, probs_id[i].second, whisper_lang_str(probs_id[i].second), probs_id[i].first);
+					//}
+				}
+				fprintf(stderr, "DETECTED lang is\n%i\n%s\n%s\n", probs_id[0].second, whisper_lang_str(probs_id[0].second), g_lang.at(whisper_lang_str(probs_id[0].second)).second.c_str());
+				//return probs_id[0].second;
+
+
+				return S_OK;
+			}
+
 		}
 		if( failed )
 		{

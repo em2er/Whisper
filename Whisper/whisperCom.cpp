@@ -7,6 +7,7 @@
 #include "ML/testUtils.h"
 #include "Utils/Trace/tracing.h"
 #include "modelFactory.h"
+//#define BUILD_BOTH_VERSIONS 1
 #if BUILD_BOTH_VERSIONS
 #ifndef __AVX__
 #error Reference version requires AVX build, and AVX2 CPU
